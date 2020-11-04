@@ -1,0 +1,37 @@
+﻿C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(15,17-74): warning X3206: implicit truncation of vector type
+  compilation object save succeeded; see C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\Debug\NormalMapPS.cso
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(17,11-30): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(19,11-30): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(27,17-74): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(29,11-30): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(31,11-30): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\NormalMapPS.hlsl(34,17-143): warning X3206: 'CalculateLight': implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\NormalMapPS.hlsl(35,11-137): warning X3206: 'CalculateLight': implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\NormalMapPS.hlsl(36,11-137): warning X3206: 'CalculateLight': implicit truncation of vector type
+  
+  compilation object save succeeded; see C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\Debug\NormalMapVS.cso
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(15,17-74): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(17,11-30): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(19,11-30): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(27,17-74): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(29,11-30): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\HelperFunctions.hlsli(31,11-30): warning X3206: implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\PixelShader.hlsl(27,17-143): warning X3206: 'CalculateLight': implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\PixelShader.hlsl(28,11-137): warning X3206: 'CalculateLight': implicit truncation of vector type
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\PixelShader.hlsl(29,11-137): warning X3206: 'CalculateLight': implicit truncation of vector type
+  
+  compilation object save succeeded; see C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\Debug\PixelShader.cso
+  compilation object save succeeded; see C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\Debug\VertexShader.cso
+  Camera.cpp
+  DXCore.cpp
+  Entity.cpp
+  Game.cpp
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\Game.cpp(67,73): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+  Main.cpp
+  Material.cpp
+  Mesh.cpp
+  SimpleShader.cpp
+  Transform.cpp
+  Generating Code...
+C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\Game.cpp(254,46): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
+  DX11Starter.vcxproj -> C:\Users\millz\Documents\College\Game Engine Design\StrategyEngine\Debug\DX11Starter.exe
