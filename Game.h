@@ -68,6 +68,8 @@ private:
 
 	//Entities
 	std::vector<Entity*> entityVector;
+	SceneNode* root;
+	Entity* playerEnt;
 
 	//Materials
 	std::vector<Material*> materialVector;

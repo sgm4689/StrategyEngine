@@ -18,7 +18,7 @@ Button::Button(Mesh* mesh, Material* material, float width, float height, float 
 	
 	this->mesh = mesh;
 	this->material = material;
-	transform = Transform(XMFLOAT3(x,y,0), XMFLOAT3(0,0,0), XMFLOAT3(1,1,1));
+	transform = Transform(XMFLOAT3(x,y,0), XMFLOAT3(0,0,0), XMFLOAT3(width,height,1));
 	this->onPress = onPress;
 
 	this->width = width;

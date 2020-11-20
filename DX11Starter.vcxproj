@@ -140,6 +140,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="SceneNode.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
@@ -160,6 +161,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="SceneNode.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="StrategyEngine.h" />
     <ClInclude Include="Transform.h" />

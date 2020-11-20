@@ -25,13 +25,12 @@ DropdownMenu::DropdownMenu(Button** list, int listLength, Mesh* mesh, Material* 
 	this->max = DirectX::XMFLOAT2(x + width/2,y + height/2 );
 	this->mesh = mesh;
 	this->mat = mat;
-	transform = new Transform();
-	transform->SetPosition(x, y, -0.1);
+	transform = new Transform(XMFLOAT3(x, y, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(width, height, 1));
 
 	//Overlay all of the buttons
-	for (int x = 0; x < listLength; x++) {
-		list[x]->GetTransform()->SetPosition(0, 0, list[x]->GetTransform()->GetPosition().z);
-		list[x]->isActive = false;
+	for (int j = 0; j < listLength; j++) {
+		list[j]->GetTransform()->SetPosition(x, y, list[j]->GetTransform()->GetPosition().z);
+		list[j]->isActive = false;
 	}
 
 	eventHandler->BindEvent(M1Down, &DropdownMenu::OnClick, this);

@@ -10,9 +10,11 @@ class Entity
 		~Entity();
 		Mesh* GetMesh();
 		Transform* GetTransform();
+		Transform* GetLocalTransform();
 		Material* GetMaterial();
 	private:
 		Transform transform;
+		Transform localTransform;
 		Mesh* mesh;
 		Material* material;
 

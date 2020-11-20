@@ -63,8 +63,9 @@ void Game::Init()
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
+	root = new SceneNode();
 
-	camera = new Camera(XMFLOAT3(0.5f, 0.5f, -1), XMFLOAT3(0, 0, 0), this->width / this->height, 3.1415f / 2);
+	camera = new Camera(XMFLOAT3(0, 0, -1), XMFLOAT3(0, 0, 0), this->width / this->height, 3.1415f / 2);
 	mainCamera->SetMain(camera);
 	directional1 = PointLight();
 	directional1.position = XMFLOAT3(0, 0, 1);
@@ -109,7 +110,7 @@ bool Game::TestGrid() {
 	ScreenToClient(hWnd, &mouse);
 	XMFLOAT2* position = camera->ClientToWorld(&mouse);
 	std::cout << "Position: " << position->x << ", " << position->y << "\n";
-	if (map->MoveAbsolute(entityVector[1], position->x, position->y)) {
+	if (map->MoveAbsolute(playerEnt, position->x, position->y)) {
 		return true;
 	}
 	else {
@@ -199,34 +200,37 @@ void Game::CreateBasicGeometry()
 #pragma region Materials
 	Material* mat = new Material(white, pixelShader, vertexShader, SRVGrid, sampleGrid, 0);
 	Material* mat2 = new Material(white, pixelShader, vertexShader, SRVButton, sampleButton, 0);
-	buttons[0] = new Button(mesh2, mat2, 1.0f, 1.0f, 0.5f, 0.5f, &TestButton, hWnd);
-	buttons[1] = new Button(mesh2, mat2, 1.0f, 1.0f, 0.5f, 0.5f, &TestButton, hWnd);
-	buttons[2] = new Button(mesh2, mat2, 1.0f, 1.0f, 0.5f, 0.5f, &TestButton, hWnd);
-	dropdown = new DropdownMenu(buttons, 3, mesh2, mat2, 1, 1, 0,0,hWnd);
+	buttons[0] = new Button(mesh2, mat2, 1.0f, 1.0f, -0.5f, -0.5f, &TestButton, hWnd);
+	buttons[1] = new Button(mesh2, mat2, 1.0f, 1.0f, -0.5f, -0.5f, &TestButton, hWnd);
+	buttons[2] = new Button(mesh2, mat2, 1.0f, 1.0f, -0.5f, -0.5f, &TestButton, hWnd);
+	dropdown = new DropdownMenu(buttons, 3, mesh2, mat2, 1, 1, -0.5f, -0.5f, hWnd);
 
 	materialVector.push_back(mat);
 
 #pragma endregion
 
 #pragma region Entities
-
-	//Object to visualize grid
-	entityVector.push_back(new Entity(mesh2, mat));
-	entityVector[0]->GetTransform()->Scale(2.0f, 2.0f, 0.1f);
-	entityVector[0]->GetTransform()->MoveRelative(0.5f, 0.5f, 0);
+	SceneNode* grid = root->AddChild(new Entity(mesh2, mat));
+	grid->GetEntity()->GetTransform()->Scale(2.0f, 2.0f, 0.1f);
+	grid->GetEntity()->GetLocalTransform()->MoveRelative(0.5f, 0.5f, 0);
 
 	Material* mat3 = new Material(red, pixelShader, vertexShader, SRVGrid, sampleGrid, 0);
 	//Object to represent unit
-	entityVector.push_back(new Entity(mesh, mat3));
-	entityVector[1]->GetTransform()->Scale(0.1f, 0.1f, 0.1f);
-	entityVector[1]->GetTransform()->MoveRelative(0.5f, 0.5f, -0.1f);
-	if (map->Add(entityVector[1])) {
-		POINT position = map->GetGridPosition(entityVector[1]);
+	SceneNode* player = root->AddChild(new Entity(mesh, mat3));
+	playerEnt = player->GetEntity();
+	player->GetEntity()->GetTransform()->Scale(0.1f, 0.1f, 0.1f);
+	player->GetEntity()->GetLocalTransform()->MoveRelative(0.5f, 0.5f, -0.1f);
+	if (map->Add(player->GetEntity())) {
+		POINT position = map->GetGridPosition(player->GetEntity());
 		std::cout << "Position: " << position.x << ", " << position.y << "\n";
 	}
 	else
 		std::cout << "Add to Grid Failed\n";
 
+
+	SceneNode* child = player->AddChild(new Entity(mesh, mat3));
+	child->GetEntity()->GetTransform()->Scale(0.1f, 0.1f, 0.1f);
+	child->GetEntity()->GetLocalTransform()->MoveRelative(0.1f, 0.1f, 0);
 
 #pragma endregion
 }
@@ -257,6 +261,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	//TestGrid(this->hWnd);
 	inputManager->Update(deltaTime, this->hWnd);
+	root->Update(deltaTime, totalTime);
 } 
 
 // --------------------------------------------------------
@@ -287,55 +292,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	pixelShader->SetData("light3", &directional3, sizeof(DirectionalLight));
 	pixelShader->CopyAllBufferData();
 
-
-	for (int x = 0; x < entityVector.size(); x++) {
-
-		SimplePixelShader* psData = entityVector[x]->GetMaterial()->GetPixelShader();
-
-		psData->SetFloat("specular", entityVector[x]->GetMaterial()->GetSpecularExponent());
-		psData->SetFloat3("position", camera->GetTransform().GetPosition());
-
-		// Set the vertex and pixel shaders to use for the next Draw() command
-		//  - These don't technically need to be set every frame
-		//  - Once you start applying different shaders to different objects,
-		//    you'll need to swap the current shaders before each draw
-		entityVector[x]->GetMaterial()->GetVertexShader()->SetShader();
-		entityVector[x]->GetMaterial()->GetPixelShader()->SetShader();
-
-		SimpleVertexShader* vsData = entityVector[x]->GetMaterial()->GetVertexShader();
-		vsData->SetFloat4("colorTint", entityVector[x]->GetMaterial()->GetColor());
-		vsData->SetMatrix4x4("world", entityVector[x]->GetTransform()->GetWorldMatrix());
-		vsData->SetMatrix4x4("view", camera->M4_view);
-		vsData->SetMatrix4x4("projection", camera->M4_projection);
-		psData->SetShaderResourceView("diffuseTexture", entityVector[x]->GetMaterial()->GetResource().Get());
-		if (entityVector[x]->GetMaterial()->HasNormalMap())
-			psData->SetShaderResourceView("normalMap", entityVector[x]->GetMaterial()->GetNormalMap().Get());
-		psData->SetSamplerState("samplerOptions", entityVector[x]->GetMaterial()->GetState().Get());
-
-		vsData->CopyAllBufferData();
-
-		// Set buffers in the input assembler
-		//  - Do this ONCE PER OBJECT you're drawing, since each object might
-		//    have different geometry.
-		//  - for this demo, this step *could* simply be done once during Init(),
-		//    but I'm doing it here because it's often done multiple times per frame
-		//    in a larger application/game
-		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
-
-		context->IASetVertexBuffers(0, 1, entityVector[x]->GetMesh()->GetVertexBuffer().GetAddressOf(), &stride, &offset);
-		context->IASetIndexBuffer(entityVector[x]->GetMesh()->GetIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0);
-
-		// Finally do the actual drawing
-		//  - Do this ONCE PER OBJECT you intend to draw
-		//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
-		//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
-		//     vertices in the currently set VERTEX BUFFER
-		context->DrawIndexed(
-			entityVector[x]->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-			0,     // Offset to the first index we want to use
-			0);    // Offset to add to each index when looking up vertices
-	}
+	root->Draw(deltaTime, totalTime, camera, context);
 
 	for (int x = 0; x < 3; x++) {
 
