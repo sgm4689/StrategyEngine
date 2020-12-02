@@ -46,7 +46,6 @@ Game::~Game()
 	// - If we weren't using smart pointers, we'd need
 	//   to call Release() on each DirectX object
 	for (auto& m : meshVector) { delete m; }
-	for (auto& e : entityVector) { delete e; }
 	for (auto& e : materialVector) { delete e; }
 	delete camera;
 	delete pixelShader;
@@ -65,7 +64,7 @@ void Game::Init()
 	LoadShaders();
 	root = new SceneNode();
 
-	camera = new Camera(XMFLOAT3(0, 0, -1), XMFLOAT3(0, 0, 0), this->width / this->height, 3.1415f / 2);
+	camera = new Camera(XMFLOAT3(0, 0, -5), XMFLOAT3(0, 0, 0), this->width / this->height, 3.1415f / 2);
 	mainCamera->SetMain(camera);
 	directional1 = PointLight();
 	directional1.position = XMFLOAT3(0, 0, 1);
@@ -110,13 +109,23 @@ bool Game::TestGrid() {
 	ScreenToClient(hWnd, &mouse);
 	XMFLOAT2* position = camera->ClientToWorld(&mouse);
 	std::cout << "Position: " << position->x << ", " << position->y << "\n";
-	if (map->MoveAbsolute(playerEnt, position->x, position->y)) {
-		return true;
+	if (buttonCount % 2 != 0) {
+		if (map->MoveAbsolute(allyTeam->GetTroops()->GetEntity(), position->x, position->y)) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	else {
-		//std::cout << "Entity Move Failed";
-		return false;
+		if (map->MoveAbsolute(enemyTeam->GetTroops()->GetEntity(), position->x, position->y)) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
+	
 }
 
 void Game::SetTextures() {
@@ -155,8 +164,14 @@ void Game::SetTextures() {
 }
 
 
-void TestButton() {
+bool Game::TestButton() {
 	std::cout << "Button Pressed";
+	if (buttonCount % 2 != 0)
+		enemyTeam->TakeDamage();
+	else
+		allyTeam->TakeDamage();
+	buttonCount++;
+	return true;
 }
 
 // --------------------------------------------------------
@@ -173,7 +188,7 @@ void Game::CreateBasicGeometry()
 	XMFLOAT4 cyan = XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
 	XMFLOAT4 white = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	map = new Map(12, 12, 0.05f);
+	map = new Map(120, 120, 0.05f);
 
 
 #pragma region Meshes
@@ -193,45 +208,35 @@ void Game::CreateBasicGeometry()
 
 
 	Mesh* mesh2 = new Mesh(vertices, 4, indices, 6, device);
-
-	buttons = new Button*[3];
 #pragma endregion
 
 #pragma region Materials
-	Material* mat = new Material(white, pixelShader, vertexShader, SRVGrid, sampleGrid, 0);
+	Material* mat = new Material(white, pixelShader, vertexShader, SRVGrid, sampleGrid, 0.1);
 	Material* mat2 = new Material(white, pixelShader, vertexShader, SRVButton, sampleButton, 0);
-	buttons[0] = new Button(mesh2, mat2, 1.0f, 1.0f, -0.5f, -0.5f, &TestButton, hWnd);
-	buttons[1] = new Button(mesh2, mat2, 1.0f, 1.0f, -0.5f, -0.5f, &TestButton, hWnd);
-	buttons[2] = new Button(mesh2, mat2, 1.0f, 1.0f, -0.5f, -0.5f, &TestButton, hWnd);
-	dropdown = new DropdownMenu(buttons, 3, mesh2, mat2, 1, 1, -0.5f, -0.5f, hWnd);
-
+	button = new Button(mesh2, mat2, 2.0f, 2.0f, -3.9, -3.9, hWnd);
+	button->SetClick(&Game::TestButton, this);
 	materialVector.push_back(mat);
 
 #pragma endregion
 
 #pragma region Entities
 	SceneNode* grid = root->AddChild(new Entity(mesh2, mat));
-	grid->GetEntity()->GetTransform()->Scale(2.0f, 2.0f, 0.1f);
-	grid->GetEntity()->GetLocalTransform()->MoveRelative(0.5f, 0.5f, 0);
+	grid->GetEntity()->GetTransform()->Scale(10.0f, 10.0f, 0.1f);
+	grid->GetEntity()->GetLocalTransform()->MoveRelative(5.0f, 5.0f, 0);
 
 	Material* mat3 = new Material(red, pixelShader, vertexShader, SRVGrid, sampleGrid, 0);
+	Material* mat4 = new Material(blue, pixelShader, vertexShader, SRVGrid, sampleGrid, 0);
+
 	//Object to represent unit
-	SceneNode* player = root->AddChild(new Entity(mesh, mat3));
-	playerEnt = player->GetEntity();
-	player->GetEntity()->GetTransform()->Scale(0.1f, 0.1f, 0.1f);
-	player->GetEntity()->GetLocalTransform()->MoveRelative(0.5f, 0.5f, -0.1f);
-	if (map->Add(player->GetEntity())) {
-		POINT position = map->GetGridPosition(player->GetEntity());
-		std::cout << "Position: " << position.x << ", " << position.y << "\n";
-	}
-	else
-		std::cout << "Add to Grid Failed\n";
+	allyTeam = new Army(7, 0.5f, mesh, mat3);
+	enemyTeam = new Army(6, 0.5f, mesh, mat4);
+	allyTeam->SetPosition(2.25f, 2.25f, -0);
+	enemyTeam->SetPosition(3.25f, 3.25f, 0);
 
+	SceneNode* cameraNode = root->AddChild(camera->GetTransform());
+	auto buttonNode = cameraNode->AddChild(button);
 
-	SceneNode* child = player->AddChild(new Entity(mesh, mat3));
-	child->GetEntity()->GetTransform()->Scale(0.1f, 0.1f, 0.1f);
-	child->GetEntity()->GetLocalTransform()->MoveRelative(0.1f, 0.1f, 0);
-
+	button->GetLocalTransform()->SetPosition(-3.9, -3.9, 5);
 #pragma endregion
 }
 
@@ -259,9 +264,10 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	//TestGrid(this->hWnd);
 	inputManager->Update(deltaTime, this->hWnd);
 	root->Update(deltaTime, totalTime);
+	allyTeam->Update(deltaTime, totalTime);
+	enemyTeam->Update(deltaTime, totalTime);
 } 
 
 // --------------------------------------------------------
@@ -293,77 +299,30 @@ void Game::Draw(float deltaTime, float totalTime)
 	pixelShader->CopyAllBufferData();
 
 	root->Draw(deltaTime, totalTime, camera, context);
+	enemyTeam->Draw(deltaTime, totalTime, camera, context);
+	allyTeam->Draw(deltaTime, totalTime, camera, context);
 
-	for (int x = 0; x < 3; x++) {
+	SimplePixelShader* psData = button->GetMaterial()->GetPixelShader();
 
-		SimplePixelShader* psData = buttons[x]->GetMaterial()->GetPixelShader();
-
-		psData->SetFloat("specular", buttons[x]->GetMaterial()->GetSpecularExponent());
-		psData->SetFloat3("position", camera->GetTransform().GetPosition());
-
-		// Set the vertex and pixel shaders to use for the next Draw() command
-		//  - These don't technically need to be set every frame
-		//  - Once you start applying different shaders to different objects,
-		//    you'll need to swap the current shaders before each draw
-		buttons[x]->GetMaterial()->GetVertexShader()->SetShader();
-		buttons[x]->GetMaterial()->GetPixelShader()->SetShader();
-
-		SimpleVertexShader* vsData = buttons[x]->GetMaterial()->GetVertexShader();
-		vsData->SetFloat4("colorTint", buttons[x]->GetMaterial()->GetColor());
-		vsData->SetMatrix4x4("world", buttons[x]->GetTransform()->GetWorldMatrix());
-		vsData->SetMatrix4x4("view", camera->M4_view);
-		vsData->SetMatrix4x4("projection", camera->M4_projection);
-		psData->SetShaderResourceView("diffuseTexture", buttons[x]->GetMaterial()->GetResource().Get());
-		if (buttons[x]->GetMaterial()->HasNormalMap())
-			psData->SetShaderResourceView("normalMap", buttons[x]->GetMaterial()->GetNormalMap().Get());
-		psData->SetSamplerState("samplerOptions", buttons[x]->GetMaterial()->GetState().Get());
-
-		vsData->CopyAllBufferData();
-
-		// Set buffers in the input assembler
-		//  - Do this ONCE PER OBJECT you're drawing, since each object might
-		//    have different geometry.
-		//  - for this demo, this step *could* simply be done once during Init(),
-		//    but I'm doing it here because it's often done multiple times per frame
-		//    in a larger application/game
-		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
-
-		context->IASetVertexBuffers(0, 1, buttons[x]->GetMesh()->GetVertexBuffer().GetAddressOf(), &stride, &offset);
-		context->IASetIndexBuffer(buttons[x]->GetMesh()->GetIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0);
-
-		// Finally do the actual drawing
-		//  - Do this ONCE PER OBJECT you intend to draw
-		//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
-		//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
-		//     vertices in the currently set VERTEX BUFFER
-		context->DrawIndexed(
-			buttons[x]->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-			0,     // Offset to the first index we want to use
-			0);    // Offset to add to each index when looking up vertices
-	}
-
-	SimplePixelShader* psData = dropdown->GetMaterial()->GetPixelShader();
-
-	psData->SetFloat("specular", dropdown->GetMaterial()->GetSpecularExponent());
-	psData->SetFloat3("position", camera->GetTransform().GetPosition());
+	psData->SetFloat("specular", button->GetMaterial()->GetSpecularExponent());
+	psData->SetFloat3("position", camera->GetTransform()->GetPosition());
 
 	// Set the vertex and pixel shaders to use for the next Draw() command
 	//  - These don't technically need to be set every frame
 	//  - Once you start applying different shaders to different objects,
 	//    you'll need to swap the current shaders before each draw
-	dropdown->GetMaterial()->GetVertexShader()->SetShader();
-	dropdown->GetMaterial()->GetPixelShader()->SetShader();
+	button->GetMaterial()->GetVertexShader()->SetShader();
+	button->GetMaterial()->GetPixelShader()->SetShader();
 
-	SimpleVertexShader* vsData = dropdown->GetMaterial()->GetVertexShader();
-	vsData->SetFloat4("colorTint", dropdown->GetMaterial()->GetColor());
-	vsData->SetMatrix4x4("world", dropdown->GetTransform()->GetWorldMatrix());
+	SimpleVertexShader* vsData = button->GetMaterial()->GetVertexShader();
+	vsData->SetFloat4("colorTint", button->GetMaterial()->GetColor());
+	vsData->SetMatrix4x4("world", button->GetTransform()->GetWorldMatrix());
 	vsData->SetMatrix4x4("view", camera->M4_view);
 	vsData->SetMatrix4x4("projection", camera->M4_projection);
-	psData->SetShaderResourceView("diffuseTexture", dropdown->GetMaterial()->GetResource().Get());
-	if (dropdown->GetMaterial()->HasNormalMap())
-		psData->SetShaderResourceView("normalMap", dropdown->GetMaterial()->GetNormalMap().Get());
-	psData->SetSamplerState("samplerOptions", dropdown->GetMaterial()->GetState().Get());
+	psData->SetShaderResourceView("diffuseTexture", button->GetMaterial()->GetResource().Get());
+	if (button->GetMaterial()->HasNormalMap())
+		psData->SetShaderResourceView("normalMap", button->GetMaterial()->GetNormalMap().Get());
+	psData->SetSamplerState("samplerOptions", button->GetMaterial()->GetState().Get());
 
 	vsData->CopyAllBufferData();
 
@@ -376,8 +335,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	context->IASetVertexBuffers(0, 1, dropdown->GetMesh()->GetVertexBuffer().GetAddressOf(), &stride, &offset);
-	context->IASetIndexBuffer(dropdown->GetMesh()->GetIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0);
+	context->IASetVertexBuffers(0, 1, button->GetMesh()->GetVertexBuffer().GetAddressOf(), &stride, &offset);
+	context->IASetIndexBuffer(button->GetMesh()->GetIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	// Finally do the actual drawing
 	//  - Do this ONCE PER OBJECT you intend to draw
@@ -385,10 +344,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 	//     vertices in the currently set VERTEX BUFFER
 	context->DrawIndexed(
-		dropdown->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+		button->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 		0,     // Offset to the first index we want to use
 		0);    // Offset to add to each index when looking up vertices
-
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
 	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)

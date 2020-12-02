@@ -17,7 +17,8 @@ bool EventHandler::DispatchEvent(Event event) {
 	if (list.first == list.second)
 		return false;//No functions were found bound to the called event
 	for (auto callback = list.first; callback != list.second; callback++) {
-		callback->second();//Call each function pointer
+		if (callback->second())
+			break;//If a function handles the event, don't give that event to other methods
 	}
 	return true;
 }

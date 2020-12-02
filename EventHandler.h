@@ -3,7 +3,7 @@
 #include <thread>
 #include <functional>
 
-using voidFunc = std::function<void()>;
+using voidFunc = std::function<bool()>;
 
 enum Event {
 	M1Down, M1Up, M1Hold, M2Down, M2Up, M2Hold, M3Down, M3Up, M3Hold,//Mouse Commands

@@ -5,23 +5,25 @@
 #include "Material.h"
 #include "MainCamera.h"
 #include "EventHandler.h"
+#include "Entity.h"
+
 class Button
+	:public Entity
 {
-	typedef void (*func_t)();
 public:
-	Button(Mesh* mesh, Material*, float width, float height, func_t onClick, HWND hWnd);
-	Button(Mesh* mesh, Material*, float width, float height, float x, float y, func_t onPress, HWND hWnd);
-	Mesh* GetMesh();
-	Transform* GetTransform();
-	Material* GetMaterial();
+	Button(Mesh* mesh, Material*, float width, float height, HWND hWnd);
+	Button(Mesh* mesh, Material*, float width, float height, float x, float y, HWND hWnd);
+
+	template <typename T>
+	void SetClick(bool(T::* method)(void), T* obj) {
+		onPress = std::bind(method, obj);
+	}
+
 	DirectX::XMFLOAT2 GetDimentions();
 	bool isActive;
 private:
-	Transform transform;
-	Mesh* mesh;
 	MainCamera* main;
-	Material* material;
-	func_t onPress;
+	voidFunc onPress;
 	long width, height;
 	HWND hWnd;
 	bool OnClick();

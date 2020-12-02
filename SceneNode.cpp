@@ -4,7 +4,6 @@
 SceneNode::SceneNode() {
 	ent = nullptr;
 	worldTransform = new Transform();
-	localTransform = new Transform();
 	parent = nullptr;
 }
 
@@ -12,7 +11,13 @@ SceneNode::SceneNode() {
 SceneNode::SceneNode(Entity* ent) {
 	this->ent = ent;
 	worldTransform = ent->GetTransform();
-	localTransform = new Transform();
+	parent = nullptr;  //Set in AddChild
+}
+
+//Creates a node centered around the given transform
+SceneNode::SceneNode(Transform* transform) {
+	this->ent = nullptr;
+	worldTransform = transform;
 	parent = nullptr;  //Set in AddChild
 }
 
@@ -20,7 +25,6 @@ SceneNode::SceneNode(Entity* ent) {
 SceneNode::SceneNode(Entity* ent, Transform* transform) {
 	this->ent = ent;
 	this->worldTransform = ent->GetTransform();
-	this->localTransform = transform;
 	parent = nullptr;  //Set in AddChild
 }
 
@@ -39,17 +43,43 @@ void SceneNode::AddChild(SceneNode* s) {
 SceneNode* SceneNode::AddChild(Entity* e) {
 	SceneNode* child = new SceneNode(e);
 	child->parent = this;
+	child->worldTransform = worldTransform;
 	children.push_back(child);
-	child->worldTransform = ent->GetTransform();
 	return child;
 }
 
-Transform* SceneNode::GetWorldTransform() {
-	return worldTransform;
+
+SceneNode* SceneNode::AddChild(Transform* t) {
+	SceneNode* child = new SceneNode(t);
+	child->parent = this;
+	children.push_back(child);
+	return child;
 }
 
-Transform* SceneNode::GetLocalTransform() {
-	return localTransform;
+
+bool SceneNode::RemoveChild(SceneNode* s) {
+	auto size = children.size();
+	children.erase(std::remove(children.begin(), children.end(), s));
+	if (size == children.size())
+		return false;//no items were removed
+	return true;
+}
+
+bool SceneNode::RemoveChild(int position) {
+	if (position > 0 && position < children.size()) {
+		children.erase(children.begin() + position);
+		return true;
+	}
+	return false;
+}
+
+SceneNode* SceneNode::GetChild(int position) {
+	return children[position];
+}
+
+
+Transform* SceneNode::GetWorldTransform() {
+	return worldTransform;
 }
 
 Entity* SceneNode::GetEntity() {
@@ -79,7 +109,7 @@ void SceneNode::Draw(float deltaTime, float totalTime, Camera* camera, Microsoft
 		SimplePixelShader* psData = ent->GetMaterial()->GetPixelShader();
 
 		psData->SetFloat("specular", ent->GetMaterial()->GetSpecularExponent());
-		psData->SetFloat3("position", camera->GetTransform().GetPosition());
+		psData->SetFloat3("position", camera->GetTransform()->GetPosition());
 
 		// Set the vertex and pixel shaders to use for the next Draw() command
 		//  - These don't technically need to be set every frame
@@ -125,4 +155,8 @@ std::vector <SceneNode*>::const_iterator SceneNode::GetChildIteratorStart() {
 
 std::vector <SceneNode*>::const_iterator SceneNode::GetChildIteratorEnd() {
 	return children.end();
+}
+
+int SceneNode::GetChildCount() {
+	return children.size();
 }

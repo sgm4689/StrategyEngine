@@ -3,6 +3,7 @@
 #include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
 #include <vector>
 #include "StrategyEngine.h"
+#include "Army.h"
 
 class Game 
 	: public DXCore
@@ -18,6 +19,7 @@ public:
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
 	bool TestGrid();
+	bool TestButton();
 private:
 
 	// Initialization helper methods - feel free to customize, combine, etc.
@@ -55,8 +57,10 @@ private:
 	Camera* camera = nullptr;
 
 	Map* map;
-	Entity* ent;
-	Button** buttons;
+	Army* allyTeam;
+	Army* enemyTeam;
+	Button* button;
+	int buttonCount = 0;
 	DropdownMenu* dropdown;
 
 	PointLight directional1;
@@ -67,9 +71,7 @@ private:
 	std::vector<Mesh*> meshVector;
 
 	//Entities
-	std::vector<Entity*> entityVector;
 	SceneNode* root;
-	Entity* playerEnt;
 
 	//Materials
 	std::vector<Material*> materialVector;

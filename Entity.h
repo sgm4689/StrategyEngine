@@ -6,13 +6,14 @@
 class Entity
 {
 	public:
+		Entity();
 		Entity(Mesh*, Material*);
 		~Entity();
 		Mesh* GetMesh();
 		Transform* GetTransform();
 		Transform* GetLocalTransform();
 		Material* GetMaterial();
-	private:
+	protected:
 		Transform transform;
 		Transform localTransform;
 		Mesh* mesh;

@@ -1,5 +1,6 @@
 #pragma once
 #include <Windows.h>
+#include "Entity.h"
 #include "Transform.h"
 #include "EventHandler.h"
 class Camera
@@ -28,11 +29,9 @@ class Camera
 		bool OnClick();
 		bool OnDrag();
 		XMFLOAT2* ClientToWorld(LPPOINT clientP);
-		Transform GetTransform();
+		Transform* GetTransform();
 		XMFLOAT4X4 M4_view;
 		XMFLOAT4X4 M4_projection;
-		static EventHandler* GetMain();
-		bool SetMain(Camera* camera);
 	private:
 		Transform transform;
 		POINT P_lastPos;

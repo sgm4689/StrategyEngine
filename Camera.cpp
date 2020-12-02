@@ -48,8 +48,8 @@ void Camera::UpdateProjectionMatrix(float aspect) {
 	XMStoreFloat4x4(&M4_projection, projection);
 }
 
-Transform Camera::GetTransform() {
-	return transform;
+Transform* Camera::GetTransform() {
+	return &transform;
 }
 
 void Camera::Update(float dt, HWND windowHandle) {
@@ -69,8 +69,9 @@ void Camera::Update(float dt, HWND windowHandle) {
 XMFLOAT2* Camera::ClientToWorld(LPPOINT clientP) {
 	XMMATRIX projection = XMLoadFloat4x4(&M4_projection);
 	XMMATRIX view = XMLoadFloat4x4(&M4_view);
+	float depth = M4_view._43;
 	XMMATRIX combine = projection * view;
-	combine = XMMatrixInverse(nullptr, combine);
+	combine = XMMatrixInverse(&DirectX::XMMatrixDeterminant(view * projection), combine);
 
 	RECT window;
 	//attempting to use clientP without binding them to variables always returns 0...  For reasons
@@ -80,8 +81,8 @@ XMFLOAT2* Camera::ClientToWorld(LPPOINT clientP) {
 	GetWindowRect(wh, &window);
 	//Mouse Pos, clamped from -1 to 1.
 	XMFLOAT4 F4_range = XMFLOAT4(
-		2*(x  / (window.right - window.left))-1,
-		-(2*(y / (window.bottom - window.top))-1),
+		2 * depth * (x  / (window.right - window.left))-depth,
+		-(2 * depth * (y / (window.bottom - window.top))-depth),
 		1.0f,//Since screen points are only X and Y, Z and W don't matter
 		1.0f
 	);
@@ -104,7 +105,7 @@ bool Camera::OnClick() {
 	ScreenToClient(wh, &mousePos);
 
 	P_lastPos = mousePos;
-	return true;
+	return false;//Moving the camera shouldn't block other events, so always return false
 }
 
 bool Camera::OnDrag() {
@@ -119,5 +120,5 @@ bool Camera::OnDrag() {
 
 	P_lastPos = mousePos;
 	UpdateViewMatrix();
-	return true;
+	return false;//Moving the camera shouldn't block other events, so always return false
 }
